@@ -1,0 +1,189 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>typescript-action</title>
+	<meta name="description" content="Documentation for typescript-action">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">typescript-action</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>typescript-action</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<p align="center">
+					<a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
+				</p>
+				<a href="#create-a-javascript-action-using-typescript" id="create-a-javascript-action-using-typescript" style="color: inherit; text-decoration: none;">
+					<h1>Create a JavaScript Action using TypeScript</h1>
+				</a>
+				<p>Use this template to bootstrap the creation of a TypeScript action.:rocket:</p>
+				<p>This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  </p>
+				<p>If you are new, there&#39;s also a simpler introduction.  See the <a href="https://github.com/actions/hello-world-javascript-action">Hello World JavaScript Action</a></p>
+				<a href="#create-an-action-from-this-template" id="create-an-action-from-this-template" style="color: inherit; text-decoration: none;">
+					<h2>Create an action from this template</h2>
+				</a>
+				<p>Click the <code>Use this Template</code> and provide the new repo details for your action</p>
+				<a href="#code-in-main" id="code-in-main" style="color: inherit; text-decoration: none;">
+					<h2>Code in Main</h2>
+				</a>
+				<blockquote>
+					<p>First, you&#39;ll need to have a reasonably modern version of <code>node</code> handy. This won&#39;t work with versions older than 9, for instance.</p>
+				</blockquote>
+				<p>Install the dependencies  </p>
+				<pre><code class="language-bash"><span style="color: #000000">$ npm install</span>
+</code></pre>
+				<p>Build the typescript and package it for distribution</p>
+				<pre><code class="language-bash"><span style="color: #000000">$ npm run build &amp;&amp; npm run package</span>
+</code></pre>
+				<p>Run the tests :heavy_check_mark:  </p>
+				<pre><code class="language-bash"><span style="color: #000000">$ npm </span><span style="color: #795E26">test</span>
+
+<span style="color: #000000"> PASS  ./index.test.js</span>
+<span style="color: #000000">  ✓ throws invalid number (3ms)</span>
+<span style="color: #000000">  ✓ </span><span style="color: #795E26">wait</span><span style="color: #000000"> 500 ms (504ms)</span>
+<span style="color: #000000">  ✓ </span><span style="color: #795E26">test</span><span style="color: #000000"> runs (95ms)</span>
+
+<span style="color: #000000">...</span>
+</code></pre>
+				<a href="#change-actionyml" id="change-actionyml" style="color: inherit; text-decoration: none;">
+					<h2>Change action.yml</h2>
+				</a>
+				<p>The action.yml contains defines the inputs and output for your action.</p>
+				<p>Update the action.yml with your name, description, inputs and outputs for your action.</p>
+				<p>See the <a href="https://help.github.com/en/articles/metadata-syntax-for-github-actions">documentation</a></p>
+				<a href="#change-the-code" id="change-the-code" style="color: inherit; text-decoration: none;">
+					<h2>Change the Code</h2>
+				</a>
+				<p>Most toolkit and CI/CD operations involve async operations so the action is run in an async function.</p>
+				<pre><code class="language-javascript"><span style="color: #AF00DB">import</span><span style="color: #000000"> </span><span style="color: #0000FF">*</span><span style="color: #000000"> </span><span style="color: #AF00DB">as</span><span style="color: #000000"> </span><span style="color: #001080">core</span><span style="color: #000000"> </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@actions/core&#039;</span><span style="color: #000000">;</span>
+<span style="color: #000000">...</span>
+
+<span style="color: #0000FF">async</span><span style="color: #000000"> </span><span style="color: #0000FF">function</span><span style="color: #000000"> </span><span style="color: #795E26">run</span><span style="color: #000000">() {</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">try</span><span style="color: #000000"> { </span>
+<span style="color: #000000">      ...</span>
+<span style="color: #000000">  } </span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">catch</span><span style="color: #000000"> (</span><span style="color: #001080">error</span><span style="color: #000000">) {</span>
+<span style="color: #000000">    </span><span style="color: #001080">core</span><span style="color: #000000">.</span><span style="color: #795E26">setFailed</span><span style="color: #000000">(</span><span style="color: #001080">error</span><span style="color: #000000">.</span><span style="color: #001080">message</span><span style="color: #000000">);</span>
+<span style="color: #000000">  }</span>
+<span style="color: #000000">}</span>
+
+<span style="color: #795E26">run</span><span style="color: #000000">()</span>
+</code></pre>
+				<p>See the <a href="https://github.com/actions/toolkit/blob/master/README.md#packages">toolkit documentation</a> for the various packages.</p>
+				<a href="#publish-to-a-distribution-branch" id="publish-to-a-distribution-branch" style="color: inherit; text-decoration: none;">
+					<h2>Publish to a distribution branch</h2>
+				</a>
+				<p>Actions are run from GitHub repos so we will checkin the packed dist folder. </p>
+				<p>Then run <a href="https://github.com/zeit/ncc">ncc</a> and push the results:</p>
+				<pre><code class="language-bash"><span style="color: #000000">$ npm run package</span>
+<span style="color: #000000">$ git add dist</span>
+<span style="color: #000000">$ git commit -a -m </span><span style="color: #A31515">&quot;prod dependencies&quot;</span>
+<span style="color: #000000">$ git push origin releases/v1</span>
+</code></pre>
+				<p>Note: We recommend using the <code>--license</code> option for ncc, which will create a license file for all of the production node modules used in your project.</p>
+				<p>Your action is now published! :rocket: </p>
+				<p>See the <a href="https://github.com/actions/toolkit/blob/master/docs/action-versioning.md">versioning documentation</a></p>
+				<a href="#validate" id="validate" style="color: inherit; text-decoration: none;">
+					<h2>Validate</h2>
+				</a>
+				<p>You can now validate the action by referencing <code>./</code> in a workflow in your repo (see <a href=".github/workflows/test.yml">test.yml</a>)</p>
+				<pre><code class="language-yaml"><span style="color: #800000">uses</span><span style="color: #000000">: </span><span style="color: #0000FF">./</span>
+<span style="color: #800000">with</span><span style="color: #000000">:</span>
+<span style="color: #000000">  </span><span style="color: #800000">milliseconds</span><span style="color: #000000">: </span><span style="color: #098658">1000</span>
+</code></pre>
+				<p>See the <a href="https://github.com/actions/typescript-action/actions">actions tab</a> for runs of this action! :rocket:</p>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage:</h2>
+				</a>
+				<p>After testing you can <a href="https://github.com/actions/toolkit/blob/master/docs/action-versioning.md">create a v1 tag</a> to reference the stable and latest V1 action</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-interface tsd-is-external">
+						<a href="interfaces/ExecOutput.html" class="tsd-kind-icon">Exec<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#filesChanged" class="tsd-kind-icon">files<wbr>Changed</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#filterFiles" class="tsd-kind-icon">filter<wbr>Files</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#git" class="tsd-kind-icon">git</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
