@@ -9,19 +9,18 @@ import { strict as assert } from 'assert'
 
 export { ExecOutput } from '@actions/exec'
 
-interface GitContentAtRef {
+export interface GitContentAtRef {
   ref: string
   content: string
 }
 
 export interface GitFileContentAt {
-  changed: boolean | null
-  created: boolean | null
-  updated: boolean | null
-  deleted: boolean | null
+  changed: boolean
+  created: boolean
+  updated: boolean
+  deleted: boolean
   from: GitContentAtRef
   to: GitContentAtRef
-  [key: string]: any
 }
 
 /**
