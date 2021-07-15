@@ -14,13 +14,21 @@ export interface GitContentAtRef {
   content: string
 }
 
-export interface GitFileContentAt {
+interface IGitFileChange {
   changed: boolean
   created: boolean
   updated: boolean
   deleted: boolean
+}
+
+export interface GitFileChange extends IGitFileChange {
+  [key: string]: boolean
+}
+
+export interface GitFileContentAt extends IGitFileChange {
   from: GitContentAtRef
   to: GitContentAtRef
+  [key: string]: boolean | GitContentAtRef
 }
 
 /**

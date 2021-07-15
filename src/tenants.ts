@@ -21,14 +21,10 @@ export interface TenantData {
   [key: string]: string | TenantAction
 }
 
-export interface Environments {
-  updated(): Promise<StringMap[]>
-}
-
 /**
  * GitUpdatedEnvironments tracks tenants in a git file
  */
-export class GitUpdatedEnvironments implements Environments {
+export class GitUpdatedEnvironments {
   fromRef
   toRef
 
@@ -183,19 +179,40 @@ export class GitFileTenants {
    * Detemine whether actions allowed when file is:
    * created, updated or deleted. Check with guards.
    *
-   * @param fileChanges git file contents change
+   * @param contentChange git file contents change
    */
-  private actionsAllowed(fileChanges: git.GitFileContentAt): boolean {
-    for (const action of ['updated', 'deleted', 'created']) {
-      if (
-        this._fileActionsGuard[action] &&
-        Object.getPrototypeOf(fileChanges)[action]
-      ) {
-        core.info(`Action execution is guarded against file being: ${action}`)
-        return false
+  private actionsAllowed(contentChange: git.GitFileContentAt): boolean {
+    const fileChange = contentChange as git.GitFileChange
+    for (const action of ['created', 'updated', 'deleted']) {
+      // file change created/updated/deleted is irrelevant to the guard
+      if (fileChange[action] === undefined || fileChange[action] === false) {
+        continue
       }
+      core.warning(`Action processing is guarded from file being ${action}!`)
+      return !this._fileActionsGuard[action]
     }
     return true
+  }
+
+  set guardFileActions(opts: { [k: string]: boolean }) {
+    const guards = [
+      'create',
+      'created',
+      'update',
+      'updated',
+      'delete',
+      'deleted'
+    ]
+    for (const k in opts) {
+      let guard = k
+      if (!guards.includes(k)) {
+        core.error('Unsupported guard')
+        return
+      } else if (!k.endsWith('d')) {
+        guard = `${k}d`
+      }
+      this._fileActionsGuard[guard] = opts[k]
+    }
   }
 
   get fromRef(): string {
