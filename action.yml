@@ -1,11 +1,21 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Manage Tenants Action'
+description: 'Track changes to tenants and dispatch dependant workflow'
+author: 'Dysnix'
+
 inputs:
-  milliseconds: # change this
+  token:
+    description: 'Global GitHub token with repo write access, can NOT use secrets.GITHUB_TOKEN!'
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  ref:
+    description: 'Global reference of the workflow run. The reference can be a branch, tag, or a commit SHA'
+    required: false
+  repo:
+    description: 'Global repo owner & name, slash separated, only set if invoking a workflow in a different repo'
+    required: false 
+  dispatch:
+    description: 'Workflow dispactch rules (list of lines)'
+    required: true
+
 runs:
   using: 'node12'
   main: 'dist/index.js'

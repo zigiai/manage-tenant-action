@@ -32,6 +32,7 @@ export class GitUpdatedEnvironments {
   private _fileGlob?: string
   private _updatedEnvironments?: GitUpdatedEnvironment[]
   private _matcherPositionToField: { [k: number]: string }
+  private _ignoreFieldValueListMap: { [k: string]: string[] }
 
   static readonly FieldIdentifier = /{[A-Za-z]\w+}/
 
@@ -42,6 +43,7 @@ export class GitUpdatedEnvironments {
   constructor(pattern: string) {
     this._pattern = pattern
     this._matcherPositionToField = {}
+    this._ignoreFieldValueListMap = {}
     this.fromRef = 'HEAD~1'
     this.toRef = 'HEAD'
 
@@ -155,6 +157,29 @@ export class GitUpdatedEnvironments {
   get supportedMatchFields(): string[] {
     return ['environment']
   }
+
+  /**
+   * Ignore processing of tenants which field values are present in ignoreList
+   *
+   * @param field         specifies the field
+   * @param ignoreList    value list to ignore
+   */
+  ignoreFieldValueInList(field: string, ignoreList: string[]): void {
+    this._ignoreFieldValueListMap[field] = ignoreList
+  }
+
+  /**
+   * Check if specified fields should be ignored for specific values.
+   * For example some specific environments can be ignore.
+   */
+  ignores(sm: StringMap): boolean {
+    for (const field in this._ignoreFieldValueListMap) {
+      if (field in sm) {
+        return this._ignoreFieldValueListMap[field].includes(sm[field])
+      }
+    }
+    return false
+  }
 }
 
 export class GitFileTenants {
@@ -257,19 +282,20 @@ export class GitFileTenants {
         .filter(i => i !== '')
 
       for (const t of from.filter(i => !to.includes(i))) {
-        fn({
-          name: t,
-          action: TenantAction.Removed,
-          ...e
-        })
+        const sm = { name: t, ...e }
+        this.Environments.ignores(sm)
+
+        if (!this.Environments.ignores(sm)) {
+          fn({ action: TenantAction.Removed, ...sm })
+        }
       }
 
       for (const t of to.filter(i => !from.includes(i))) {
-        fn({
-          name: t,
-          action: TenantAction.Added,
-          ...e
-        })
+        const sm = { name: t, ...e }
+
+        if (!this.Environments.ignores(sm)) {
+          fn({ action: TenantAction.Added, ...sm })
+        }
       }
     }
   }

@@ -1,11 +1,4 @@
-import {
-  describe,
-  expect,
-  it,
-  jest,
-  afterEach,
-  beforeEach
-} from '@jest/globals'
+import { describe, expect, it, jest, afterEach } from '@jest/globals'
 
 import * as git from '../src/git'
 import * as tenants from '../src/tenants'
@@ -20,6 +13,11 @@ import { GitContentAtRef, GitFileContentAt } from '../src/git'
 
 const gitEnvironmentsUpdated = [
   { file: 'live/test/tenants.yaml', environment: 'prod' } as tenants.StringMap
+]
+
+const gitEnvironmentsIgnore = [
+  { file: 'live/test/tenants.yaml', environment: 'prod' } as tenants.StringMap,
+  { file: 'live/test/tenants.yaml', environment: 'stage' } as tenants.StringMap
 ]
 
 // Make content
@@ -66,10 +64,10 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-const gitFile = (): tenants.GitFileTenants => {
+const gitFile = (envUpdated?: tenants.StringMap[]): tenants.GitFileTenants => {
   let tenantfile = new GitFileTenants('live/{environment}/tenants.yaml')
   tenantfile.Environments.updated = async (): Promise<tenants.StringMap[]> => {
-    return gitEnvironmentsUpdated
+    return envUpdated || gitEnvironmentsUpdated
   }
   return tenantfile
 }
@@ -208,5 +206,23 @@ describe('Match number of tenants: GitFileTenants', () => {
     })
 
     expect(list).toHaveLength(0)
+  })
+
+  it('field ignore works', async () => {
+    const mock = jest.spyOn(git, 'fileContentChange')
+    let list: tenants.TenantData[] = []
+
+    mock.mockResolvedValue(Suite.fileUpdatedAdd)
+    const fromGitFile = gitFile(gitEnvironmentsIgnore)
+
+    // ignore prod environments
+    fromGitFile.Environments.ignoreFieldValueInList('environment', ['prod'])
+
+    await fromGitFile.process(tenant => {
+      list.push(tenant)
+    })
+
+    expect(list).toHaveLength(1)
+    expect(list.map(t => t.environment)).toEqual(['stage'])
   })
 })
