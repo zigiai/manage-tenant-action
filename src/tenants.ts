@@ -17,7 +17,9 @@ export enum TenantAction {
 }
 
 export interface TenantData {
-  action: TenantAction
+  tenant: string
+  action: string
+  actionId: TenantAction
   [key: string]: string | TenantAction
 }
 
@@ -282,19 +284,19 @@ export class GitFileTenants {
         .filter(i => i !== '')
 
       for (const t of from.filter(i => !to.includes(i))) {
-        const sm = { name: t, ...e }
+        const sm = { tenant: t, ...e }
         this.Environments.ignores(sm)
 
         if (!this.Environments.ignores(sm)) {
-          fn({ action: TenantAction.Removed, ...sm })
+          fn({ action: 'removed', actionId: TenantAction.Removed, ...sm })
         }
       }
 
       for (const t of to.filter(i => !from.includes(i))) {
-        const sm = { name: t, ...e }
+        const sm = { tenant: t, ...e }
 
         if (!this.Environments.ignores(sm)) {
-          fn({ action: TenantAction.Added, ...sm })
+          fn({ action: 'added', actionId: TenantAction.Added, ...sm })
         }
       }
     }

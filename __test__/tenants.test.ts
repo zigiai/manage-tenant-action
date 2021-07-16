@@ -84,11 +84,11 @@ describe('Match number of tenants: GitFileTenants', () => {
     })
 
     expect(list).toHaveLength(3)
-    expect(list[1].name).toEqual('bar')
+    expect(list[1].tenant).toEqual('bar')
     expect(list[1].environment).toEqual('prod')
     expect(
       list.every(t => {
-        return t.action == TenantAction.Added
+        return t.actionId == TenantAction.Added
       })
     ).toBeTruthy
   })
@@ -104,10 +104,10 @@ describe('Match number of tenants: GitFileTenants', () => {
     })
 
     expect(list).toHaveLength(2)
-    expect(list[1].name).toEqual('bar')
+    expect(list[1].tenant).toEqual('bar')
     expect(
       list.every(t => {
-        return t.action == TenantAction.Removed
+        return t.actionId == TenantAction.Removed
       })
     ).toBeTruthy
   })
@@ -123,7 +123,7 @@ describe('Match number of tenants: GitFileTenants', () => {
     })
 
     expect(list).toHaveLength(1)
-    expect(list[0].action).toStrictEqual(TenantAction.Added)
+    expect(list[0].actionId).toStrictEqual(TenantAction.Added)
   })
 
   it('file updated (tenants removed)', async () => {
@@ -137,8 +137,8 @@ describe('Match number of tenants: GitFileTenants', () => {
     })
 
     expect(list).toHaveLength(1)
-    expect(list[0].action).toStrictEqual(TenantAction.Removed)
-    expect(list[0].name).toStrictEqual('bar')
+    expect(list[0].actionId).toStrictEqual(TenantAction.Removed)
+    expect(list[0].tenant).toStrictEqual('bar')
   })
 
   it('file updated (tenants added + removed)', async () => {
@@ -152,9 +152,9 @@ describe('Match number of tenants: GitFileTenants', () => {
     })
 
     expect(list).toHaveLength(2)
-    expect(list[0].action).toStrictEqual(TenantAction.Removed)
-    expect(list[1].action).toStrictEqual(TenantAction.Added)
-    expect(list.map(t => t.name)).toEqual(['foo', 'bar'])
+    expect(list[0].actionId).toStrictEqual(TenantAction.Removed)
+    expect(list[1].actionId).toStrictEqual(TenantAction.Added)
+    expect(list.map(t => t.tenant)).toEqual(['foo', 'bar'])
   })
 
   it('file updated (guard from file creation)', async () => {
