@@ -1,8 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-
 import csvparse from 'csv-parse/lib/sync'
-import { listenerCount } from 'process'
 
 export interface Inputs {
   dispatch: string[]
@@ -52,17 +50,18 @@ export function getInputs(): Inputs {
   }
 }
 
-export function loadContext() {
+export function loadContext(): Inputs {
   const conf = getInputs()
   if (!conf.token) {
-    throw new Error('token: required - to trigger workflow_dispatch (other than secrets.GITHUB_TOKEN)');
+    throw new Error(
+      'token: required - to trigger workflow_dispatch (other than secrets.GITHUB_TOKEN)'
+    )
   }
   if (!conf.pattern) {
     throw new Error('pattern: required - tenant file search pattern')
   }
   return conf
 }
-
 
 /**
  * Parses rules list
@@ -73,7 +72,7 @@ export function loadContext() {
 export function parseRules(rules: string[]): string[][] {
   const result: string[][] = []
   for (const line of rules) {
-    result.push(...csvparse(line) as string[][])
+    result.push(...(csvparse(line) as string[][]))
   }
   return result
 }

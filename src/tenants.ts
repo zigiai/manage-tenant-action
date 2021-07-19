@@ -16,9 +16,7 @@ export enum TenantAction {
   Removed
 }
 
-export const TenantDataKeys = [
-  'action', 'environment', 'tenant'
-]
+export const TenantDataKeys = ['action', 'environment', 'tenant']
 
 export type TenantDataKeysFilter = typeof TenantDataKeys[number]
 
