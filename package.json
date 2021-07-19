@@ -35,7 +35,7 @@
     "@actions/glob": "^0.2.0",
     "@types/jest": "^26.0.24",
     "@types/mocha": "^8.2.3",
-    "@types/node": "^14.14.9",
+    "@types/node": "^16.3.3",
     "@typescript-eslint/parser": "^4.28.3",
     "@vercel/ncc": "^0.25.1",
     "chai": "^4.3.4",
