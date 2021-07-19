@@ -16,11 +16,18 @@ export enum TenantAction {
   Removed
 }
 
+export const TenantDataKeys = [
+  'action', 'environment', 'tenant'
+]
+
+export type TenantDataKeysFilter = typeof TenantDataKeys[number]
+
 export interface TenantData {
-  tenant: string
-  action: string
-  actionId: TenantAction
-  [key: string]: string | TenantAction
+  actionId?: TenantAction
+  action: TenantDataKeysFilter
+  environment: TenantDataKeysFilter
+  tenant: TenantDataKeysFilter
+  [key: string]: string | TenantAction | undefined
 }
 
 /**
@@ -48,8 +55,7 @@ export class GitUpdatedEnvironments {
     this._ignoreFieldValueListMap = {}
     this.fromRef = 'HEAD~1'
     this.toRef = 'HEAD'
-
-    this.validateMatchFields()
+    this.validateMatcherFields()
   }
 
   private async updatedGitFiles(): Promise<string[]> {
@@ -87,7 +93,7 @@ export class GitUpdatedEnvironments {
     return this._fileGlob
   }
 
-  private validateMatchFields(): void {
+  private validateMatcherFields(): void {
     const matchers = this.supportedMatchFields.map(i => `{${i}}`)
     let position = 0
 
@@ -285,18 +291,25 @@ export class GitFileTenants {
 
       for (const t of from.filter(i => !to.includes(i))) {
         const sm = { tenant: t, ...e }
-        this.Environments.ignores(sm)
-
         if (!this.Environments.ignores(sm)) {
-          fn({ action: 'removed', actionId: TenantAction.Removed, ...sm })
+          fn({
+            actionId: TenantAction.Removed,
+            action: 'removed',
+            environment: e?.enviornment,
+            ...sm
+          })
         }
       }
 
       for (const t of to.filter(i => !from.includes(i))) {
         const sm = { tenant: t, ...e }
-
         if (!this.Environments.ignores(sm)) {
-          fn({ action: 'added', actionId: TenantAction.Added, ...sm })
+          fn({
+            actionId: TenantAction.Added,
+            action: 'added',
+            environment: e?.enviornment,
+            ...sm
+          })
         }
       }
     }
