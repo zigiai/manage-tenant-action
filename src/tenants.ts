@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as git from './git'
+import * as yaml from 'js-yaml'
 
 export interface StringMap {
   [key: string]: string
@@ -188,6 +189,10 @@ export class GitUpdatedEnvironments {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type TenantProcessFn = (tenant: TenantData) => void
+type GitFileTenantsOpts = { [opt: string]: string }
+
 export class GitFileTenants {
   private _fromRef: string
   private _toRef: string
@@ -195,7 +200,8 @@ export class GitFileTenants {
 
   Environments: GitUpdatedEnvironments
 
-  constructor(pattern: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(pattern: string, opts?: GitFileTenantsOpts) {
     this._fromRef = 'HEAD~1'
     this._toRef = 'HEAD'
     this._fileActionsGuard = {
@@ -212,7 +218,7 @@ export class GitFileTenants {
    *
    * @param contentChange git file contents change
    */
-  private actionsAllowed(contentChange: git.GitFileContentAt): boolean {
+  protected actionsAllowed(contentChange: git.GitFileContentAt): boolean {
     const fileChange = contentChange as git.GitFileChange
     for (const action of ['created', 'updated', 'deleted']) {
       // file change created/updated/deleted is irrelevant to the guard
@@ -265,51 +271,127 @@ export class GitFileTenants {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async process(fn: (tenant: TenantData) => void): Promise<void> {
-    for (const e of await this.Environments.updated()) {
-      const change = await git.fileContentChange(
-        e.file,
-        this.fromRef,
-        this.toRef
-      )
+  protected transformContent(content: string): string[] {
+    throw new Error('not implemented')
+  }
 
-      // skip operations
-      if (!this.actionsAllowed(change)) {
-        return
-      }
-
-      const from = change.from.content
-        .split(/\s+/)
-        .map(s => s)
-        .filter(i => i !== '')
-      const to = change.to.content
-        .split(/\s+/)
-        .map(s => s)
-        .filter(i => i !== '')
-
-      for (const t of from.filter(i => !to.includes(i))) {
-        const sm = { tenant: t, ...e }
-        if (!this.Environments.ignores(sm)) {
-          fn({
-            actionId: TenantAction.Removed,
-            action: 'removed',
-            environment: e?.enviornment,
-            ...sm
-          })
-        }
-      }
-
-      for (const t of to.filter(i => !from.includes(i))) {
-        const sm = { tenant: t, ...e }
-        if (!this.Environments.ignores(sm)) {
-          fn({
-            actionId: TenantAction.Added,
-            action: 'added',
-            environment: e?.enviornment,
-            ...sm
-          })
-        }
+  protected processTenants(
+    from: string[],
+    to: string[],
+    env: StringMap,
+    fn: TenantProcessFn
+  ): void {
+    // handle processing to removed tenants
+    for (const tenant of from.filter(i => !to.includes(i))) {
+      if (!this.Environments.ignores(env)) {
+        fn({
+          tenant,
+          actionId: TenantAction.Removed,
+          action: 'removed',
+          environment: env?.enviornment,
+          ...env
+        })
       }
     }
+    // handle processing to added tenants
+    for (const tenant of to.filter(i => !from.includes(i))) {
+      if (!this.Environments.ignores(env)) {
+        fn({
+          tenant,
+          actionId: TenantAction.Added,
+          action: 'added',
+          environment: env?.enviornment,
+          ...env
+        })
+      }
+    }
+  }
+
+  /**
+   * Get tenants from file
+   * @param env environment definition
+   */
+  protected async getTenants(env: StringMap): Promise<[string[], string[]]> {
+    const change = await git.fileContentChange(
+      env.file,
+      this.fromRef,
+      this.toRef
+    )
+    // skip operations
+    if (!this.actionsAllowed(change)) {
+      return [[], []]
+    }
+    return [
+      this.transformContent(change.from.content),
+      this.transformContent(change.to.content)
+    ]
+  }
+
+  /**
+   * Processes updated tenants (either added or removed)
+   *
+   * @param fn callback to execute on update
+   */
+  async process(fn: TenantProcessFn): Promise<void> {
+    for (const e of await this.Environments.updated()) {
+      const [from, to] = await this.getTenants(e)
+      this.processTenants(from, to, e, fn)
+    }
+  }
+}
+
+export class GitFilePlainText extends GitFileTenants {
+  /**
+   * Transfroms plaintext tenant file content (space
+   * or newline separated) into the tenant list
+   *
+   * @param content tenant plaintext file content foo bar\n tenant
+   * @returns ['foo', 'bar', 'tenant']
+   */
+  protected transformContent(content: string): string[] {
+    return content
+      .split(/\s+/)
+      .map(s => s)
+      .filter(i => i !== '')
+  }
+}
+
+/**
+ * @member tenantsKey Specifies path to tenants array 'path.to.key' or empty
+ */
+export class GitFileYaml extends GitFileTenants {
+  tenantsKey: string | undefined
+
+  constructor(pattern: string, opts?: GitFileTenantsOpts) {
+    super(pattern)
+    if (!opts) {
+      return
+    }
+    this.tenantsKey = opts.tenantsKey
+  }
+
+  /**
+   * Transfroms Yaml tenant file content into the tenant list
+   *
+   * @param content tenant yaml file content: [foo, bar, tenant]
+   * @returns ['foo', 'bar', 'tenant']
+   */
+  protected transformContent(content: string): string[] {
+    let result = yaml.load(content)
+    if (this.tenantsKey) {
+      for (const pathPart of this.tenantsKey.split('.')) {
+        result = (result as { [k: string]: object })[pathPart]
+      }
+    }
+    if (result && Array.isArray(result)) {
+      return result as string[]
+    }
+    // handle empty file content, i.e. empty string
+    // eslint-disable-next-line no-empty
+    else if (result === undefined) {
+    } else {
+      throw new Error('tenants array expected')
+    }
+    return []
   }
 }
