@@ -20,6 +20,7 @@ export enum TenantAction {
 export const TenantDataKeys = ['action', 'environment', 'tenant']
 
 export type TenantDataKeysFilter = typeof TenantDataKeys[number]
+export type GuardFileActions = { [k: string]: boolean | undefined }
 
 export interface TenantData {
   actionId?: TenantAction
@@ -196,7 +197,7 @@ type GitFileTenantsOpts = { [opt: string]: string }
 export class GitFileTenants {
   private _fromRef: string
   private _toRef: string
-  private _fileActionsGuard: { [k: string]: boolean }
+  private _fileActionsGuard: { [k: string]: boolean | undefined }
 
   Environments: GitUpdatedEnvironments
 
@@ -231,7 +232,7 @@ export class GitFileTenants {
     return true
   }
 
-  set guardFileActions(opts: { [k: string]: boolean }) {
+  set guardFileActions(opts: GuardFileActions) {
     const guards = [
       'create',
       'created',

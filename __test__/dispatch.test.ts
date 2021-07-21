@@ -1,8 +1,13 @@
 import { describe, expect, it } from '@jest/globals'
-
-import { Dispatch, DispatchRule, DispatchPrio } from '../src/dispatch'
+import {
+  Dispatch,
+  DispatchRule,
+  DispatchPrio,
+  DispatchOptions
+} from '../src/dispatch'
 import { nodeenv } from 'nodeenv'
-import { TenantData, StringMap } from '../src/tenants'
+import { TenantData } from '../src/tenants'
+import { getInputConf } from '../src/context'
 
 const TenantsModified: TenantData[] = [
   {
@@ -64,7 +69,7 @@ const Suite = {
 
 describe.each(TenantsModified)('.priorityMatch', tenant => {
   const env = nodeenv(Suite.default.env)
-  const dispatch = new Dispatch()
+  const dispatch = new Dispatch((getInputConf() as unknown) as DispatchOptions)
   const rule = new DispatchRule(tenant)
   const match = dispatch.priorityMatch(rule)
 

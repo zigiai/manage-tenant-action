@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
-import { loadContext, parseRules } from '../src/context'
+import { parseRules, splitKV } from '../src/context'
 import { StringMap, TenantData } from '../src/tenants'
+import { workflow_dispatch, WorkflowDispatchOpts } from './workflow_dispatch'
 
 const DispatchParams = ['action', 'environment', 'tenant'] as const
 
@@ -17,20 +18,6 @@ export enum DispatchPrio {
   action = 100,
   environment = 200,
   tenant = 300
-}
-
-export type KeyValue = {
-  key: string
-  value: string
-}
-
-function splitKV(keyValue: string): KeyValue | null {
-  const kv = keyValue.split('=', 2).map(s => s.trim())
-  if (kv.length === 1) {
-    core.debug('dispatch parameter shoulbe be of key=value form')
-    return null
-  }
-  return { key: kv[0], value: kv[1] }
 }
 
 export class DispatchRule extends Set<string> {
@@ -90,15 +77,19 @@ export class DispatchRule extends Set<string> {
   }
 }
 
+export interface DispatchOptions extends WorkflowDispatchOpts {
+  dispatch: string[]
+}
+
 export class Dispatch {
   rules: DispatchRule[]
   FilterRuleParams: DispatchParamsFilter[] = [...DispatchParams]
-  context
+  options
 
-  constructor() {
-    this.context = loadContext()
+  constructor(options: DispatchOptions) {
+    this.options = options
     this.rules = []
-    for (const rule of parseRules(this.context.dispatch)) {
+    for (const rule of parseRules(this.options.dispatch)) {
       this.rules.push(new DispatchRule(rule))
     }
   }
@@ -106,9 +97,30 @@ export class Dispatch {
   run(list: TenantData[]): void {
     for (const data of list) {
       const rule = new DispatchRule()
-
       rule.addParams(data as StringMap)
-      // TODO: actual dispatch this.priorityMatch(rule)
+      const match = this.priorityMatch(rule)
+      if (match === null) {
+        core.warning(
+          `No workflow matched for {environment: ${rule.environment}, tenant: ${rule.tenant}, action: ${rule.action}}`
+        )
+        continue
+      }
+      if (!match.workflow) {
+        throw new Error('dispatch rule must contain workflow parameter!')
+      }
+      if (!match.token || this.options.token) {
+        throw new Error('no token provided by the the input or the rule')
+      }
+      // invoke the matched workflow
+      workflow_dispatch(
+        {
+          workflow: match.workflow,
+          token: match.token || this.options.token,
+          repo: match.repo || this.options.repo,
+          ref: match.ref || this.options.ref
+        },
+        data
+      )
     }
   }
 

@@ -3,17 +3,18 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import { Endpoints } from '@octokit/types'
 import { Octokit } from '@octokit/rest'
+import { TenantData } from './tenants'
 
-interface DispatchOpts {
+export interface WorkflowDispatchOpts {
   token: string
   workflow: string
   repo: string
   ref: string
 }
 
-async function workflow_dispatch(
-  opts: DispatchOpts,
-  inputs: { [key: string]: string | number }
+export async function workflow_dispatch(
+  opts: WorkflowDispatchOpts,
+  inputs: TenantData
 ): Promise<void> {
   const ref = opts.ref || github.context.ref
   const [owner, repo] = opts.repo

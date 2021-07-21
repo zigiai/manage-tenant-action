@@ -16,9 +16,19 @@ jobs:
       - run: |
           npm run all
   test:
+    # self action run
     name: check dist
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: ./
         if: startsWith(github.ref, 'refs/heads/releases/') || startsWith(github.ref, 'refs/tags/releases/')
+        with:
+          token: TOKEN
+          ref: master
+          repo: this/hello
+          pattern: live/{environment}/tenants.yaml
+          dispatch: |
+            action=add, workflow=xxx,
+            action=add, workflow=yyy, environment=prod
+            action=add, workflow=zzz, environment=prod, tenant=foo

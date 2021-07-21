@@ -4,11 +4,12 @@ import csvparse from 'csv-parse/lib/sync'
 
 export interface Inputs {
   dispatch: string[]
-  ignoreActionOnFile: string[]
+  ignoreDispatchOnFile: string[]
   token: string
   ref: string
   repo: string
   pattern: string
+  mode: string
 }
 
 export function getInputList(name: string, ignoreComma?: boolean): string[] {
@@ -40,23 +41,19 @@ export function getInputList(name: string, ignoreComma?: boolean): string[] {
 export function getInputs(): Inputs {
   return {
     dispatch: getInputList('dispatch', true),
-    ignoreActionOnFile: getInputList('ignore-action-on-file'),
+    ignoreDispatchOnFile: getInputList('ignore-dispatch-on-file'),
     token: core.getInput('token'),
     ref: core.getInput('ref') || github.context.ref,
     repo:
-      core.getInput('ref') ||
+      core.getInput('repo') ||
       `${github.context.repo.owner}/${github.context.repo.repo}`,
-    pattern: core.getInput('pattern')
+    pattern: core.getInput('pattern'),
+    mode: core.getInput('mode') || 'plaintext'
   }
 }
 
-export function loadContext(): Inputs {
+export function getInputConf(): Inputs {
   const conf = getInputs()
-  if (!conf.token) {
-    throw new Error(
-      'token: required - to trigger workflow_dispatch (other than secrets.GITHUB_TOKEN)'
-    )
-  }
   if (!conf.pattern) {
     throw new Error('pattern: required - tenant file search pattern')
   }
@@ -75,4 +72,18 @@ export function parseRules(rules: string[]): string[][] {
     result.push(...(csvparse(line) as string[][]))
   }
   return result
+}
+
+export type KeyValue = {
+  key: string
+  value: string
+}
+
+export function splitKV(keyValue: string): KeyValue | null {
+  const kv = keyValue.split('=', 2).map(s => s.trim())
+  if (kv.length === 1) {
+    core.debug('dispatch parameter shoulbe be of key=value form')
+    return null
+  }
+  return { key: kv[0], value: kv[1] }
 }
