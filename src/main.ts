@@ -17,7 +17,7 @@ async function run(): Promise<void> {
 
     const tenants =
       conf.mode === 'yaml'
-        ? new GitFileYaml(conf.pattern)
+        ? new GitFileYaml(conf.pattern, { tenantsKey: conf.yamlKey })
         : new GitFilePlainText(conf.pattern)
 
     const guards: GuardFileActions = {}
@@ -35,7 +35,7 @@ async function run(): Promise<void> {
 
     // collect changed tenats
     const list: TenantData[] = []
-    tenants.process(t => list.push(t))
+    await tenants.process(t => list.push(t))
 
     // dispatch
     dispatch.run(list)

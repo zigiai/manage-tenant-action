@@ -391,7 +391,9 @@ export class GitFileYaml extends GitFileTenants {
     // eslint-disable-next-line no-empty
     else if (result === undefined) {
     } else {
-      throw new Error('tenants array expected')
+      throw new Error(
+        'tenants array expected. make sure tenantsKey is correct.'
+      )
     }
     return []
   }
