@@ -62,6 +62,7 @@ function getInputs() {
     return {
         dispatch: getInputList('dispatch', true),
         ignoreDispatchOnFile: getInputList('ignore-dispatch-on-file'),
+        yamlKey: core.getInput('yaml-key') || '',
         token: core.getInput('token'),
         ref: core.getInput('ref') || github.context.ref,
         repo: core.getInput('repo') ||
@@ -509,7 +510,7 @@ function run() {
             const conf = context_1.getInputConf();
             const dispatch = new dispatch_1.Dispatch(conf);
             const tenants = conf.mode === 'yaml'
-                ? new tenants_1.GitFileYaml(conf.pattern)
+                ? new tenants_1.GitFileYaml(conf.pattern, { tenantsKey: conf.yamlKey })
                 : new tenants_1.GitFilePlainText(conf.pattern);
             const guards = {};
             for (const guardstr of conf.ignoreDispatchOnFile) {
@@ -524,7 +525,7 @@ function run() {
             tenants.toRef = github.context.payload['after'];
             // collect changed tenats
             const list = [];
-            tenants.process(t => list.push(t));
+            yield tenants.process(t => list.push(t));
             // dispatch
             dispatch.run(list);
         }
@@ -874,7 +875,7 @@ class GitFileYaml extends GitFileTenants {
         else if (result === undefined) {
         }
         else {
-            throw new Error('tenants array expected');
+            throw new Error('tenants array expected. make sure tenantsKey is correct.');
         }
         return [];
     }
@@ -16477,6 +16478,7 @@ function getInputs() {
     return {
         dispatch: getInputList('dispatch', true),
         ignoreDispatchOnFile: getInputList('ignore-dispatch-on-file'),
+        yamlKey: core.getInput('yaml-key') || '',
         token: core.getInput('token'),
         ref: core.getInput('ref') || github.context.ref,
         repo: core.getInput('repo') ||
