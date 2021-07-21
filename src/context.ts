@@ -5,6 +5,7 @@ import csvparse from 'csv-parse/lib/sync'
 export interface Inputs {
   dispatch: string[]
   ignoreDispatchOnFile: string[]
+  yamlKey: string
   token: string
   ref: string
   repo: string
@@ -42,6 +43,7 @@ export function getInputs(): Inputs {
   return {
     dispatch: getInputList('dispatch', true),
     ignoreDispatchOnFile: getInputList('ignore-dispatch-on-file'),
+    yamlKey: core.getInput('yaml-key') || '',
     token: core.getInput('token'),
     ref: core.getInput('ref') || github.context.ref,
     repo:

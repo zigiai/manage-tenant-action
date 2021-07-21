@@ -19,6 +19,9 @@ inputs:
     description: 'Tenant file mode plaintext or yaml (default: plaintext)'
     default: 'plaintext'
     required: false
+  yaml-key:
+    description: 'Path to tenants array (path.to.array)'
+    required: false
   ignore-dispatch-on-file:
     description: 'Ignore operations when tenant file created/updated/deleted'
     required: false
