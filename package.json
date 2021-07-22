@@ -26,7 +26,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/github": "^5.0.0",
-    "@octokit/rest": "^18.6.7",
+    "@octokit/rest": "^18.7.0",
     "csv-parse": "^4.16.0"
   },
   "devDependencies": {
