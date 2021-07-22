@@ -131,6 +131,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Dispatch = exports.DispatchRule = exports.DispatchPrio = void 0;
 const core = __importStar(__webpack_require__(2186));
@@ -202,28 +211,36 @@ class Dispatch {
         }
     }
     run(list) {
-        for (const data of list) {
-            const rule = new DispatchRule();
-            rule.addParams(data);
-            const match = this.priorityMatch(rule);
-            if (match === null) {
-                core.warning(`No workflow matched for {environment: ${rule.environment}, tenant: ${rule.tenant}, action: ${rule.action}}`);
-                continue;
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const data of list) {
+                const rule = new DispatchRule();
+                rule.addParams(data);
+                const match = this.priorityMatch(rule);
+                if (match === null) {
+                    core.warning(`No workflow matched for {environment: ${rule.environment}, tenant: ${rule.tenant}, action: ${rule.action}}`);
+                    continue;
+                }
+                if (!match.workflow) {
+                    throw new Error('Dispatch rule must contain workflow parameter!');
+                }
+                if (!match.token && !this.options.token) {
+                    throw new Error('No token provided! Specify token via the corresponding input or in the dispatch rule!');
+                }
+                // invoke the matched workflow
+                yield workflow_dispatch_1.workflow_dispatch({
+                    workflow: match.workflow,
+                    token: match.token || this.options.token,
+                    repo: match.repo || this.options.repo,
+                    ref: match.ref || this.options.ref
+                }, 
+                // inputs are validated by the dispatched workflow, thus there must be a complete match
+                {
+                    action: data.action,
+                    environment: data.environment,
+                    tenant: data.tenant
+                });
             }
-            if (!match.workflow) {
-                throw new Error('dispatch rule must contain workflow parameter!');
-            }
-            if (!match.token || this.options.token) {
-                throw new Error('no token provided by the the input or the rule');
-            }
-            // invoke the matched workflow
-            workflow_dispatch_1.workflow_dispatch({
-                workflow: match.workflow,
-                token: match.token || this.options.token,
-                repo: match.repo || this.options.repo,
-                ref: match.ref || this.options.ref
-            }, data);
-        }
+        });
     }
     paramsMatchingPrio(priority) {
         const entries = Object.entries(DispatchPrio);
@@ -347,25 +364,18 @@ exports.git = git;
  */
 function filesChanged(fromRef = 'HEAD~1', toRef = 'HEAD') {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const output = yield self.git(`diff --name-only ${fromRef} ${toRef}`);
-            if (output.exitCode > 0) {
-                core.error(output.stderr);
-                throw new Error('git diff command failed');
-            }
-            if (output.stdout.length > 0) {
-                core.startGroup('filesChanged');
-                core.debug(output.stdout);
-                core.endGroup();
-            }
-            const list = output.stdout.split(os_1.default.EOL);
-            return list.filter(l => l);
+        const output = yield self.git(`diff --name-only ${fromRef} ${toRef}`);
+        if (output.exitCode > 0) {
+            core.error(output.stderr);
+            throw new Error('git diff command failed');
         }
-        catch (error) {
-            core.debug(error);
-            core.setFailed(error.message);
-            throw error;
+        if (core.isDebug() && output.stdout.length > 0) {
+            core.startGroup('filesChanged');
+            core.debug(output.stdout);
+            core.endGroup();
         }
+        const list = output.stdout.split(os_1.default.EOL);
+        return list.filter(l => l);
     });
 }
 exports.filesChanged = filesChanged;
@@ -390,7 +400,7 @@ function filterFiles(pattern, files) {
         const globbed = (yield globber.glob()).map(path => {
             return path.substr(cwdLen);
         });
-        if (globbed.length > 0) {
+        if (core.isDebug() && globbed.length > 0) {
             core.startGroup('filterFiles');
             core.debug('### globbed:');
             core.debug(globbed.join('\n'));
@@ -580,8 +590,8 @@ const yaml = __importStar(__webpack_require__(1917));
 // eslint-disable-next-line no-shadow
 var TenantAction;
 (function (TenantAction) {
-    TenantAction[TenantAction["Added"] = 0] = "Added";
-    TenantAction[TenantAction["Removed"] = 1] = "Removed";
+    TenantAction[TenantAction["Add"] = 0] = "Add";
+    TenantAction[TenantAction["Remove"] = 1] = "Remove";
 })(TenantAction = exports.TenantAction || (exports.TenantAction = {}));
 exports.TenantDataKeys = ['action', 'environment', 'tenant'];
 /**
@@ -733,12 +743,13 @@ class GitFileTenants {
     actionsAllowed(contentChange) {
         const fileChange = contentChange;
         for (const action of ['created', 'updated', 'deleted']) {
-            // file change created/updated/deleted is irrelevant to the guard
-            if (fileChange[action] === undefined || fileChange[action] === false) {
+            if (!this._fileActionsGuard[action] || !fileChange[action]) {
                 continue;
             }
-            core.warning(`Action processing is guarded from file being ${action}!`);
-            return !this._fileActionsGuard[action];
+            else if (this._fileActionsGuard[action] && fileChange[action]) {
+                core.warning(`Action processing is guarded from file being ${action}!`);
+                return false;
+            }
         }
         return true;
     }
@@ -757,7 +768,7 @@ class GitFileTenants {
                 core.error('Unsupported guard');
                 return;
             }
-            else if (!k.endsWith('d')) {
+            if (!k.endsWith('d')) {
                 guard = `${k}d`;
             }
             this._fileActionsGuard[guard] = opts[k];
@@ -785,13 +796,13 @@ class GitFileTenants {
         // handle processing to removed tenants
         for (const tenant of from.filter(i => !to.includes(i))) {
             if (!this.Environments.ignores(env)) {
-                fn(Object.assign({ tenant, actionId: TenantAction.Removed, action: 'removed', environment: env === null || env === void 0 ? void 0 : env.enviornment }, env));
+                fn(Object.assign({ tenant, actionId: TenantAction.Remove, action: 'remove', environment: env === null || env === void 0 ? void 0 : env.enviornment }, env));
             }
         }
         // handle processing to added tenants
         for (const tenant of to.filter(i => !from.includes(i))) {
             if (!this.Environments.ignores(env)) {
-                fn(Object.assign({ tenant, actionId: TenantAction.Added, action: 'added', environment: env === null || env === void 0 ? void 0 : env.enviornment }, env));
+                fn(Object.assign({ tenant, actionId: TenantAction.Add, action: 'add', environment: env === null || env === void 0 ? void 0 : env.enviornment }, env));
             }
         }
     }
@@ -875,7 +886,7 @@ class GitFileYaml extends GitFileTenants {
         else if (result === undefined) {
         }
         else {
-            throw new Error('tenants array expected. make sure tenantsKey is correct.');
+            throw new Error('tenants array expected. make sure tenantsKey is correct!');
         }
         return [];
     }
@@ -931,16 +942,16 @@ function workflow_dispatch(opts, inputs) {
             ? opts.repo.split('/')
             : [github.context.repo.owner, github.context.repo.repo];
         const octokit = new rest_1.Octokit({ auth: opts.token });
-        const response = yield octokit.paginate(octokit.actions.listRepoWorkflows.endpoint.merge({
+        const workflows = yield octokit.paginate(octokit.rest.actions.listRepoWorkflows.endpoint.merge({
             owner,
             repo,
             ref,
             inputs
         }));
         let found;
-        for (const page of response) {
-            found = page.data.workflows.find(w => w.name === opts.workflow || w.id.toString() === opts.workflow);
-            if (found) {
+        for (const w of workflows) {
+            if (w.name === opts.workflow || w.id.toString() === opts.workflow) {
+                found = w;
                 break;
             }
         }
