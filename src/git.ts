@@ -55,29 +55,23 @@ export async function filesChanged(
   fromRef = 'HEAD~1',
   toRef = 'HEAD'
 ): Promise<string[]> {
-  try {
-    const output: ExecOutput = await self.git(
-      `diff --name-only ${fromRef} ${toRef}`
-    )
+  const output: ExecOutput = await self.git(
+    `diff --name-only ${fromRef} ${toRef}`
+  )
 
-    if (output.exitCode > 0) {
-      core.error(output.stderr)
-      throw new Error('git diff command failed')
-    }
-
-    if (output.stdout.length > 0) {
-      core.startGroup('filesChanged')
-      core.debug(output.stdout)
-      core.endGroup()
-    }
-
-    const list: string[] = output.stdout.split(os.EOL)
-    return list.filter(l => l)
-  } catch (error) {
-    core.debug(error)
-    core.setFailed(error.message)
-    throw error
+  if (output.exitCode > 0) {
+    core.error(output.stderr)
+    throw new Error('git diff command failed')
   }
+
+  if (core.isDebug() && output.stdout.length > 0) {
+    core.startGroup('filesChanged')
+    core.debug(output.stdout)
+    core.endGroup()
+  }
+
+  const list: string[] = output.stdout.split(os.EOL)
+  return list.filter(l => l)
 }
 
 /**
@@ -111,7 +105,7 @@ export async function filterFiles(
     return path.substr(cwdLen)
   })
 
-  if (globbed.length > 0) {
+  if (core.isDebug() && globbed.length > 0) {
     core.startGroup('filterFiles')
     core.debug('### globbed:')
     core.debug(globbed.join('\n'))
