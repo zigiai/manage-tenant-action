@@ -3,7 +3,6 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import { Endpoints } from '@octokit/types'
 import { Octokit } from '@octokit/rest'
-import { TenantData } from './tenants'
 
 export interface WorkflowDispatchOpts {
   token: string
@@ -14,7 +13,7 @@ export interface WorkflowDispatchOpts {
 
 export async function workflow_dispatch(
   opts: WorkflowDispatchOpts,
-  inputs: TenantData
+  inputs: { [k: string]: string }
 ): Promise<void> {
   const ref = opts.ref || github.context.ref
   const [owner, repo] = opts.repo
@@ -22,10 +21,10 @@ export async function workflow_dispatch(
     : [github.context.repo.owner, github.context.repo.repo]
 
   const octokit = new Octokit({ auth: opts.token })
-  type WorkflowResponse = Endpoints['GET /repos/{owner}/{repo}/actions/workflows']['response']
 
-  const response: WorkflowResponse[] = await octokit.paginate(
-    octokit.actions.listRepoWorkflows.endpoint.merge({
+  type WorkflowsResponseList = Endpoints['GET /repos/{owner}/{repo}/actions/workflows']['response']['data']['workflows']
+  const workflows: WorkflowsResponseList = await octokit.paginate(
+    octokit.rest.actions.listRepoWorkflows.endpoint.merge({
       owner,
       repo,
       ref,
@@ -34,11 +33,9 @@ export async function workflow_dispatch(
   )
 
   let found
-  for (const page of response) {
-    found = page.data.workflows.find(
-      w => w.name === opts.workflow || w.id.toString() === opts.workflow
-    )
-    if (found) {
+  for (const w of workflows) {
+    if (w.name === opts.workflow || w.id.toString() === opts.workflow) {
+      found = w
       break
     }
   }

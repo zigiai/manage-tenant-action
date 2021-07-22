@@ -94,7 +94,7 @@ export class Dispatch {
     }
   }
 
-  run(list: TenantData[]): void {
+  async run(list: TenantData[]): Promise<void> {
     for (const data of list) {
       const rule = new DispatchRule()
       rule.addParams(data as StringMap)
@@ -106,20 +106,27 @@ export class Dispatch {
         continue
       }
       if (!match.workflow) {
-        throw new Error('dispatch rule must contain workflow parameter!')
+        throw new Error('Dispatch rule must contain workflow parameter!')
       }
-      if (!match.token || this.options.token) {
-        throw new Error('no token provided by the the input or the rule')
+      if (!match.token && !this.options.token) {
+        throw new Error(
+          'No token provided! Specify token via the corresponding input or in the dispatch rule!'
+        )
       }
       // invoke the matched workflow
-      workflow_dispatch(
+      await workflow_dispatch(
         {
           workflow: match.workflow,
           token: match.token || this.options.token,
           repo: match.repo || this.options.repo,
           ref: match.ref || this.options.ref
         },
-        data
+        // inputs are validated by the dispatched workflow, thus there must be a complete match
+        {
+          action: data.action,
+          environment: data.environment,
+          tenant: data.tenant
+        }
       )
     }
   }

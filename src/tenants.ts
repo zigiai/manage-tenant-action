@@ -13,8 +13,8 @@ interface GitUpdatedEnvironment extends StringMap {
 
 // eslint-disable-next-line no-shadow
 export enum TenantAction {
-  Added,
-  Removed
+  Add,
+  Remove
 }
 
 export const TenantDataKeys = ['action', 'environment', 'tenant']
@@ -222,12 +222,12 @@ export class GitFileTenants {
   protected actionsAllowed(contentChange: git.GitFileContentAt): boolean {
     const fileChange = contentChange as git.GitFileChange
     for (const action of ['created', 'updated', 'deleted']) {
-      // file change created/updated/deleted is irrelevant to the guard
-      if (fileChange[action] === undefined || fileChange[action] === false) {
+      if (!this._fileActionsGuard[action] || !fileChange[action]) {
         continue
+      } else if (this._fileActionsGuard[action] && fileChange[action]) {
+        core.warning(`Action processing is guarded from file being ${action}!`)
+        return false
       }
-      core.warning(`Action processing is guarded from file being ${action}!`)
-      return !this._fileActionsGuard[action]
     }
     return true
   }
@@ -246,7 +246,8 @@ export class GitFileTenants {
       if (!guards.includes(k)) {
         core.error('Unsupported guard')
         return
-      } else if (!k.endsWith('d')) {
+      }
+      if (!k.endsWith('d')) {
         guard = `${k}d`
       }
       this._fileActionsGuard[guard] = opts[k]
@@ -287,8 +288,8 @@ export class GitFileTenants {
       if (!this.Environments.ignores(env)) {
         fn({
           tenant,
-          actionId: TenantAction.Removed,
-          action: 'removed',
+          actionId: TenantAction.Remove,
+          action: 'remove',
           environment: env?.enviornment,
           ...env
         })
@@ -299,8 +300,8 @@ export class GitFileTenants {
       if (!this.Environments.ignores(env)) {
         fn({
           tenant,
-          actionId: TenantAction.Added,
-          action: 'added',
+          actionId: TenantAction.Add,
+          action: 'add',
           environment: env?.enviornment,
           ...env
         })
@@ -392,7 +393,7 @@ export class GitFileYaml extends GitFileTenants {
     else if (result === undefined) {
     } else {
       throw new Error(
-        'tenants array expected. make sure tenantsKey is correct.'
+        'tenants array expected. make sure tenantsKey is correct!'
       )
     }
     return []

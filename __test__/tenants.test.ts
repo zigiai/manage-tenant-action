@@ -93,7 +93,7 @@ describe('Match number of tenants: GitFilePlainText', () => {
     expect(list[1].environment).toEqual('prod')
     expect(
       list.every(t => {
-        return t.actionId == TenantAction.Added
+        return t.actionId == TenantAction.Add
       })
     ).toBeTruthy
   })
@@ -109,7 +109,7 @@ describe('Match number of tenants: GitFilePlainText', () => {
     expect(list[1].tenant).toEqual('bar')
     expect(
       list.every(t => {
-        return t.actionId == TenantAction.Removed
+        return t.actionId == TenantAction.Remove
       })
     ).toBeTruthy
   })
@@ -123,7 +123,7 @@ describe('Match number of tenants: GitFilePlainText', () => {
     })
 
     expect(list).toHaveLength(1)
-    expect(list[0].actionId).toStrictEqual(TenantAction.Added)
+    expect(list[0].actionId).toStrictEqual(TenantAction.Add)
   })
 
   it('file updated (tenants removed)', async () => {
@@ -134,7 +134,7 @@ describe('Match number of tenants: GitFilePlainText', () => {
       list.push(tenant)
     })
     expect(list).toHaveLength(1)
-    expect(list[0].actionId).toStrictEqual(TenantAction.Removed)
+    expect(list[0].actionId).toStrictEqual(TenantAction.Remove)
     expect(list[0].tenant).toStrictEqual('bar')
   })
 
@@ -146,8 +146,8 @@ describe('Match number of tenants: GitFilePlainText', () => {
       list.push(tenant)
     })
     expect(list).toHaveLength(2)
-    expect(list[0].actionId).toStrictEqual(TenantAction.Removed)
-    expect(list[1].actionId).toStrictEqual(TenantAction.Added)
+    expect(list[0].actionId).toStrictEqual(TenantAction.Remove)
+    expect(list[1].actionId).toStrictEqual(TenantAction.Add)
     expect(list.map(t => t.tenant)).toEqual(['foo', 'bar'])
   })
 
@@ -219,7 +219,7 @@ describe('Match number of tenants: GitFileYaml', () => {
     })
     expect(list).toHaveLength(1)
     expect(list[0].tenant).toEqual('foo')
-    expect(list[0].actionId).toEqual(TenantAction.Added)
+    expect(list[0].actionId).toEqual(TenantAction.Add)
   })
 
   it('file updated (tenants added)', async () => {
@@ -230,7 +230,7 @@ describe('Match number of tenants: GitFileYaml', () => {
       list.push(tenant)
     })
     expect(list).toHaveLength(1)
-    expect(list[0].actionId).toStrictEqual(TenantAction.Added)
+    expect(list[0].actionId).toStrictEqual(TenantAction.Add)
   })
 
   it('file updated (tenants removed)', async () => {
@@ -241,7 +241,7 @@ describe('Match number of tenants: GitFileYaml', () => {
       list.push(tenant)
     })
     expect(list).toHaveLength(1)
-    expect(list[0].actionId).toStrictEqual(TenantAction.Removed)
+    expect(list[0].actionId).toStrictEqual(TenantAction.Remove)
     expect(list[0].tenant).toStrictEqual('bar')
   })
 })
