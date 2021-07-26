@@ -47,7 +47,7 @@
     "jest": "^27.0.6",
     "jest-circus": "^27.0.6",
     "js-yaml": "^3.14.1",
-    "nodeenv": "^3.0.66",
+    "nodeenv": "^3.0.67",
     "prettier": "2.2.1",
     "ts-jest": "^27.0.4",
     "typedoc": "^0.21.4",
