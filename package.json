@@ -27,7 +27,7 @@
   "dependencies": {
     "@actions/github": "^5.0.0",
     "@octokit/rest": "^18.7.0",
-    "csv-parse": "^4.16.0"
+    "csv-parse": "^4.16.3"
   },
   "devDependencies": {
     "@actions/core": "^1.4.0",
@@ -36,7 +36,7 @@
     "@types/jest": "^26.0.24",
     "@types/js-yaml": "^4.0.2",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.4.0",
+    "@types/node": "^16.9.6",
     "@typescript-eslint/parser": "^4.28.4",
     "@vercel/ncc": "^0.25.1",
     "chai": "^4.3.4",
@@ -47,7 +47,7 @@
     "jest": "^27.0.6",
     "jest-circus": "^27.0.6",
     "js-yaml": "^3.14.1",
-    "nodeenv": "^3.0.66",
+    "nodeenv": "^3.0.71",
     "prettier": "2.2.1",
     "ts-jest": "^27.0.4",
     "typedoc": "^0.21.4",
