@@ -1,0 +1,39 @@
+name: SonarQube Scan
+
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  SONARQUBE_HOST: https://sonarqube.stage.zigi.app
+
+jobs:
+  sonarscan:
+    name: SonarScan
+    runs-on: [default, stage]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: SonarQube Scan
+        uses: kitabisa/sonarqube-action@master
+        with:
+          host: ${{ env.SONARQUBE_HOST }}
+          login: ${{ secrets.SONARQUBE_TOKEN }}
+
+  cleanup:
+    name: Clean up files
+    if: always()
+    runs-on: [default, stage]
+    needs: [sonarscan]
+    container:
+      image: alpine:3.13
+      options: -v ${{ github.workspace }}:${{ github.workspace }}
+
+    steps:
+      - name: Clean up file not owned by our GID
+        shell: sh -e {0}
+        run: |
+          if [ -d "${{ github.workspace }}" ]; then
+            find ${{ github.workspace }}/ \! -group 1001 -exec rm -rf {} \; || /bin/true
+          fi
