@@ -94,7 +94,11 @@ export class Dispatch {
     }
   }
 
+  // Run the dispatch list
   async run(list: TenantData[]): Promise<void> {
+    const addedTenants: string[] = [], addedRunIds: string[] = [], addedEnvironments: string[] = [],
+      removedTenants: string[] = [], removedRunIds: string[] = [], removedEnvironments: string[] = []
+
     for (const data of list) {
       const rule = new DispatchRule()
       rule.addParams(data as StringMap)
@@ -113,8 +117,8 @@ export class Dispatch {
           'No token provided! Specify token via the corresponding input or in the dispatch rule!'
         )
       }
-      // invoke the matched workflow
-      await workflow_dispatch(
+
+      const workflowId = await workflow_dispatch(
         {
           workflow: match.workflow,
           token: match.token || this.options.token,
@@ -128,7 +132,25 @@ export class Dispatch {
           tenant: data.tenant
         }
       )
+
+      if (data.action === 'add') {
+        addedTenants.push(data.tenant)
+        addedRunIds.push(workflowId.toString())
+        addedEnvironments.push(data.environment)
+      } else if (data.action === 'remove') {
+        removedTenants.push(data.tenant)
+        removedRunIds.push(workflowId.toString())
+        removedEnvironments.push(data.environment)
+      }
     }
+
+    // Set action outputs
+    core.setOutput('added-tenants', addedTenants.join(' '))
+    core.setOutput('added-run-ids', addedRunIds.join(' '))
+    core.setOutput('added-environments', addedEnvironments.join(' '))
+    core.setOutput('removed-tenants', removedTenants.join(' '))
+    core.setOutput('removed-run-ids', removedRunIds.join(' '))
+    core.setOutput('removed-environments', removedEnvironments.join(' '))
   }
 
   private paramsMatchingPrio(priority: number): DispatchParamsFilter[] {
