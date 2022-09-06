@@ -1,5 +1,6 @@
 name: SonarQube Scan
 
+
 on:
   repository_dispatch:
     types: [disabled]
@@ -26,7 +27,7 @@ jobs:
   cleanup:
     name: Clean up files
     if: always()
-    runs-on: [default, stage]
+    runs-on: [self-hosted, stage]
     needs: [sonarscan]
     container:
       image: alpine:3.13
