@@ -1,9 +1,11 @@
 name: SonarQube Scan
 
 on:
-  pull_request:
-    branches:
-      - master
+  repository_dispatch:
+    types: [disabled]
+  # pull_request:
+  #   branches:
+  #     - master
 
 env:
   SONARQUBE_HOST: https://sonarqube.stage.zigi.app
