@@ -1,9 +1,7 @@
 // Creds to Ben Coleman, 2020
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-
-// eslint-disable-next-line import/named
-import { Endpoints } from '@octokit/types'
+import { Endpoints } from '@octokit/types' // eslint-disable-line import/named
 import { Octokit } from '@octokit/rest'
 
 export interface WorkflowDispatchOpts {
@@ -24,7 +22,8 @@ export async function workflow_dispatch(
 
   const octokit = new Octokit({ auth: opts.token })
 
-  type WorkflowsResponseList = Endpoints['GET /repos/{owner}/{repo}/actions/workflows']['response']['data']['workflows']
+  type WorkflowsResponseList =
+    Endpoints['GET /repos/{owner}/{repo}/actions/workflows']['response']['data']['workflows']
   const workflows: WorkflowsResponseList = await octokit.paginate(
     octokit.rest.actions.listRepoWorkflows.endpoint.merge({
       owner,

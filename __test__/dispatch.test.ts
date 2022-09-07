@@ -6,10 +6,10 @@ import {
   DispatchOptions
 } from '../src/dispatch'
 import { nodeenv } from 'nodeenv'
-import { TenantData } from '../src/tenants'
+import { StringMap } from '../src/tenants'
 import { getInputConf } from '../src/context'
 
-const TenantsModified: TenantData[] = [
+const TenantsModified: StringMap[] = [
   {
     action: 'add',
     tenant: 'foo',
@@ -69,7 +69,7 @@ const Suite = {
 
 describe.each(TenantsModified)('.priorityMatch', tenant => {
   const env = nodeenv(Suite.default.env)
-  const dispatch = new Dispatch((getInputConf() as unknown) as DispatchOptions)
+  const dispatch = new Dispatch(getInputConf() as unknown as DispatchOptions)
   const rule = new DispatchRule(tenant)
   const match = dispatch.priorityMatch(rule)
 
