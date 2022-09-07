@@ -29,6 +29,20 @@ inputs:
     description: 'Workflow dispactch rules (list of lines)'
     required: true
 
+outputs:
+  added-tenants:
+    description: The list of tenants created (space separated)
+  added-run-environments:
+    description: The list of corresponding environments (space separated)
+  added-run-ids:
+    description: The list of corresponding dispatched workflows (space separated)
+  removed-tenants:
+    description: The list of tenants removed (space separated)
+  removed-run-environments:
+    description: The list of corresponding environments (space separated)
+  removed-run-ids:
+    description: The list of corresponding dispatched workflows (space separated)
+
 runs:
   using: 'node12'
   main: 'dist/index.js'
