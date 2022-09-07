@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import csvparse from 'csv-parse/lib/sync'
+import { parse as csvparse } from 'csv-parse/sync' // eslint-disable-line import/no-unresolved
 
 export interface Inputs {
   dispatch: string[]
@@ -24,7 +24,7 @@ export function getInputList(name: string, ignoreComma?: boolean): string[] {
   for (const output of csvparse(items, {
     columns: false,
     relaxColumnCount: true,
-    skipLinesWithEmptyValues: true
+    skipEmptyLines: true
   }) as string[][]) {
     if (output.length === 1) {
       res.push(output[0])

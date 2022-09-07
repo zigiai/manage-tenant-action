@@ -13,7 +13,7 @@ async function run(): Promise<void> {
   try {
     // Get conf and init the dispatcher
     const conf = getInputConf()
-    const dispatch = new Dispatch((conf as unknown) as DispatchOptions)
+    const dispatch = new Dispatch(conf as unknown as DispatchOptions)
 
     const tenants =
       conf.mode === 'yaml'
