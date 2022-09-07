@@ -190,7 +190,6 @@ export class GitUpdatedEnvironments {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type TenantProcessFn = (tenant: TenantData) => void
 type GitFileTenantsOpts = { [opt: string]: string }
 

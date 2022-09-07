@@ -39,8 +39,10 @@ async function run(): Promise<void> {
 
     // dispatch
     dispatch.run(list)
-  } catch (error) {
-    core.setFailed(error.message)
+  } catch (e) {
+    if (e instanceof Error) {
+      core.setFailed(e.message)
+    }
   }
 }
 

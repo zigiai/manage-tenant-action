@@ -92,8 +92,8 @@ export async function filterFiles(
   )
 
   let filter = files
-  const cwdLen = `${process.cwd()}/`.length,
-    result = []
+  const cwdLen = `${process.cwd()}/`.length
+  const result = []
 
   // split into array
   if (files instanceof String) {
@@ -136,10 +136,10 @@ export async function fileContentChange(
   toRef = 'HEAD'
 ): Promise<GitFileContentAt> {
   const changedList = await self.filesChanged(fromRef, toRef)
-  let contentFrom,
-    contentTo,
-    created = false,
-    deleted = false
+  let contentFrom
+  let contentTo
+  let created = false
+  let deleted = false
 
   if (!changedList.includes(path)) {
     return {
