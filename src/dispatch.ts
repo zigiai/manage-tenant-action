@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { parseRules, splitKV } from '../src/context'
 import { StringMap, TenantData } from '../src/tenants'
-import { workflow_dispatch, WorkflowDispatchOpts } from './workflow_dispatch'
+import { workflow_dispatch, CallOpts } from './workflow_dispatch'
 
 const DispatchParams = ['action', 'environment', 'tenant'] as const
 
@@ -77,7 +77,7 @@ export class DispatchRule extends Set<string> {
   }
 }
 
-export interface DispatchOptions extends WorkflowDispatchOpts {
+export interface DispatchOptions extends CallOpts {
   dispatch: string[]
 }
 
@@ -96,8 +96,12 @@ export class Dispatch {
 
   // Run the dispatch list
   async run(list: TenantData[]): Promise<void> {
-    const addedTenants: string[] = [], addedRunIds: string[] = [], addedEnvironments: string[] = [],
-      removedTenants: string[] = [], removedRunIds: string[] = [], removedEnvironments: string[] = []
+    const addedTenants: string[] = []
+    const addedRunIds: string[] = []
+    const addedEnvironments: string[] = []
+    const removedTenants: string[] = []
+    const removedRunIds: string[] = []
+    const removedEnvironments: string[] = []
 
     for (const data of list) {
       const rule = new DispatchRule()
@@ -118,7 +122,7 @@ export class Dispatch {
         )
       }
 
-      const workflowId = await workflow_dispatch(
+      let runId = await workflow_dispatch(
         {
           workflow: match.workflow,
           token: match.token || this.options.token,
@@ -133,13 +137,18 @@ export class Dispatch {
         }
       )
 
+      // Set run id to 0 if it couldn't be detected
+      if (!runId) {
+        runId = 0
+      }
+
       if (data.action === 'add') {
         addedTenants.push(data.tenant)
-        addedRunIds.push(workflowId.toString())
+        addedRunIds.push(runId.toString())
         addedEnvironments.push(data.environment)
       } else if (data.action === 'remove') {
         removedTenants.push(data.tenant)
-        removedRunIds.push(workflowId.toString())
+        removedRunIds.push(runId.toString())
         removedEnvironments.push(data.environment)
       }
     }
