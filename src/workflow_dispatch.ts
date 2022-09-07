@@ -92,6 +92,8 @@ async function waitForQueued(
     run_number = headRun.run_number
   }
 
+  // We actually admit to catch one of the expected statuses in the following ten seconds
+  // In other words we fail to detect the workflow run if something might go wrong
   for (let i = 0; i < 10; i++) {
     // sleep for a second
     await new Promise(resolve => setTimeout(resolve, 1000))
