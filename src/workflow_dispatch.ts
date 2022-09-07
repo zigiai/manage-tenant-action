@@ -1,6 +1,8 @@
 // Creds to Ben Coleman, 2020
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+
+// eslint-disable-next-line import/named
 import { Endpoints } from '@octokit/types'
 import { Octokit } from '@octokit/rest'
 
