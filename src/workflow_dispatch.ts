@@ -110,7 +110,7 @@ async function waitForQueued(
 }
 
 // Dispatches a workflow and returns the dispatched workflow run id
-export async function workflow_dispatch(
+export async function workflowDispatch(
   opts: CallOpts,
   inputs: StringMap
 ): Promise<number | undefined> {

@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { parseRules, splitKV } from '../src/context'
 import { StringMap, TenantData } from '../src/tenants'
-import { workflow_dispatch, CallOpts } from './workflow_dispatch'
+import { workflowDispatch, CallOpts } from './workflow_dispatch'
 
 const DispatchParams = ['action', 'environment', 'tenant'] as const
 
@@ -122,7 +122,7 @@ export class Dispatch {
         )
       }
 
-      let runId = await workflow_dispatch(
+      let runId = await workflowDispatch(
         {
           workflow: match.workflow,
           token: match.token || this.options.token,
