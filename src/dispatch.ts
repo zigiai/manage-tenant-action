@@ -153,13 +153,64 @@ export class Dispatch {
       }
     }
 
+    // Unique environments
+    const updatedEnvironments = addedEnvironments
+      .concat(removedEnvironments)
+      .filter((v, i, a) => a.indexOf(v) === i)
+
     // Set action outputs
-    core.setOutput('added-tenants', addedTenants.join(' '))
-    core.setOutput('added-run-ids', addedRunIds.join(' '))
-    core.setOutput('added-environments', addedEnvironments.join(' '))
-    core.setOutput('removed-tenants', removedTenants.join(' '))
-    core.setOutput('removed-run-ids', removedRunIds.join(' '))
-    core.setOutput('removed-environments', removedEnvironments.join(' '))
+    core.setOutput('environments', updatedEnvironments.join(' '))
+    this.setOutputs('added', addedTenants, addedRunIds, addedEnvironments)
+    this.setOutputs(
+      'removed',
+      removedTenants,
+      removedRunIds,
+      removedEnvironments
+    )
+  }
+
+  // Group by tenant environment
+  private groupTenantsByEnvironment(
+    tenants: string[],
+    runIds: string[],
+    environments: string[]
+  ): [Map<string, string[]>, Map<string, string[]>] {
+    const grouped = new Map<string, string[]>()
+    const groupedRunIds = new Map<string, string[]>()
+
+    for (const [i, tenant] of tenants.entries()) {
+      grouped.get(environments[i]) || grouped.set(environments[i], [tenant])
+      groupedRunIds.get(environments[i]) ||
+        groupedRunIds.set(environments[i], [runIds[i]])
+      grouped.get(environments[i])?.push(tenant)
+      groupedRunIds.get(environments[i])?.push(runIds[i])
+    }
+
+    return [grouped, groupedRunIds]
+  }
+
+  // Write output value such as stage-added-tenants or prod-add-tenants etc
+  private setOutputs(
+    action: string,
+    tenants: string[],
+    runIds: string[],
+    environments: string[]
+  ): void {
+    const [grouped, groupedRunIds] = this.groupTenantsByEnvironment(
+      tenants,
+      runIds,
+      environments
+    )
+    for (const environment of grouped.keys()) {
+      core.setOutput(
+        `${environment}-${action}-tenants`,
+        grouped.get(environment)?.join(' ')
+      )
+      core.setOutput(
+        `${environment}-${action}-run-ids`,
+        groupedRunIds.get(environment)?.join(' ')
+      )
+    }
   }
 
   private paramsMatchingPrio(priority: number): DispatchParamsFilter[] {
